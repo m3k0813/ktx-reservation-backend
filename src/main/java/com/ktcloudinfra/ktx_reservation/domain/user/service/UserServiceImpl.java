@@ -4,6 +4,7 @@ import com.ktcloudinfra.ktx_reservation.domain.user.dto.request.CreateUserReques
 import com.ktcloudinfra.ktx_reservation.domain.user.dto.request.LoginRequestDTO;
 import com.ktcloudinfra.ktx_reservation.domain.user.entity.User;
 import com.ktcloudinfra.ktx_reservation.domain.user.repository.UserRepository;
+import com.ktcloudinfra.ktx_reservation.global.exeception.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class UserServiceImpl implements UserService{
     @Transactional
     public void signUp(CreateUserRequestDTO request) {
         if(userRepository.findByUsername(request.getUsername()).isPresent()){
-            throw new RuntimeException("이미 존재하는 사용자입니다.");
+            throw new ApiException("이미 존재하는 사용자입니다.");
         }
 
         User user = User.builder()
@@ -37,10 +38,10 @@ public class UserServiceImpl implements UserService{
     @Transactional
     public Long login(LoginRequestDTO request) {
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new ApiException("사용자가 존재하지 않습니다."));
 
         if(!encoder.matches(request.getPassword(), user.getPassword())){
-            throw new RuntimeException("비밀번호가 불일치합니다.");
+            throw new ApiException("비밀번호가 불일치합니다.");
         }
 
         return user.getId();

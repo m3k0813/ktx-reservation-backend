@@ -4,6 +4,7 @@ import com.ktcloudinfra.ktx_reservation.domain.train.entity.Train;
 import com.ktcloudinfra.ktx_reservation.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,4 +32,12 @@ public class Reservation {
 
     @Column(name = "seat_number", nullable = false)
     private String seatNumber;
+
+    @Builder
+    public Reservation(User user, Train train, LocalDateTime reservedAt, String seatNumber) {
+        this.user = user;
+        this.train = train;
+        this.reservedAt = reservedAt;
+        this.seatNumber = seatNumber;
+    }
 }
