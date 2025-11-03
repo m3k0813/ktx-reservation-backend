@@ -1,0 +1,30 @@
+# IntelliJ IDEA
+/.idea/
+/*.iml
+
+# Eclipse
+/.classpath
+/.project
+/.settings/
+
+# Gradle
+/build/
+/.gradle/
+/out/
+
+# Maven
+/target/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application files
+*.h2.db
+*.db
+*.sqlite
+
+/src/main/resources/**.yml
