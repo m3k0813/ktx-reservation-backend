@@ -1,5 +1,6 @@
 package com.ktcloudinfra.ktx_reservation.domain.revervation.entity;
 
+import com.ktcloudinfra.ktx_reservation.domain.seat.entity.Seat;
 import com.ktcloudinfra.ktx_reservation.domain.train.entity.Train;
 import com.ktcloudinfra.ktx_reservation.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -30,14 +31,15 @@ public class Reservation {
     @Column(name = "reserved_at", nullable = false)
     private LocalDateTime reservedAt;
 
-    @Column(name = "seat_number", nullable = false)
-    private String seatNumber;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seat_id", nullable = false)
+    private Seat seat;
 
     @Builder
-    public Reservation(User user, Train train, LocalDateTime reservedAt, String seatNumber) {
+    public Reservation(User user, Train train, LocalDateTime reservedAt, Seat seat) {
         this.user = user;
         this.train = train;
         this.reservedAt = reservedAt;
-        this.seatNumber = seatNumber;
+        this.seat = seat;
     }
 }
