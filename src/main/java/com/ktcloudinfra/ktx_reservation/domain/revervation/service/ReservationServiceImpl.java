@@ -1,6 +1,7 @@
 package com.ktcloudinfra.ktx_reservation.domain.revervation.service;
 
 import com.ktcloudinfra.ktx_reservation.domain.revervation.dto.request.ReservationRequestDTO;
+import com.ktcloudinfra.ktx_reservation.domain.revervation.dto.response.ReservationResponseDTO;
 import com.ktcloudinfra.ktx_reservation.domain.revervation.entity.Reservation;
 import com.ktcloudinfra.ktx_reservation.domain.revervation.repository.ReservationRepository;
 import com.ktcloudinfra.ktx_reservation.domain.seat.repository.SeatRepository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -51,5 +53,43 @@ public class ReservationServiceImpl implements ReservationService{
         reservationRepository.save(reservation);
 
         return reservation.getId();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservationResponseDTO> getReservationsByUser(Long userId) {
+        List<Reservation> reservations = reservationRepository.findByUserId(userId);
+        if (reservations.isEmpty()) {
+            throw new ApiException("예매 내역이 없습니다.");
+        }
+        return reservations.stream()
+                .map(ReservationResponseDTO::from)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReservationResponseDTO getReservation(Long reservationId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ApiException("해당 예약 내역이 없습니다."));
+
+        return ReservationResponseDTO.from(reservation);
+    }
+
+    @Override
+    @Transactional
+    public void cancelReservation(Long reservationId) {
+        var reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ApiException("해당 예매가 존재하지 않습니다."));
+
+        var seat = reservation.getSeat();
+
+        if (!seat.isReserved()) {
+            throw new ApiException("이미 취소된 좌석입니다.");
+        }
+
+        seat.cancel();
+
+        reservationRepository.delete(reservation);
     }
 }
