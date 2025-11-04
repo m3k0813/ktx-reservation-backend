@@ -46,4 +46,12 @@ public class UserServiceImpl implements UserService{
 
         return user.getId();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUser(Long userId) {
+
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException("해당 유저가 존재하지 않습니다."));
+    }
 }

@@ -43,6 +43,8 @@ public class ReservationServiceImpl implements ReservationService{
 
         seat.reserve();
 
+        train.updateAvailableSeats(train.getAvailableSeats() - 1);
+
         Reservation reservation = Reservation.builder()
                 .user(user)
                 .train(train)
@@ -83,12 +85,15 @@ public class ReservationServiceImpl implements ReservationService{
                 .orElseThrow(() -> new ApiException("해당 예매가 존재하지 않습니다."));
 
         var seat = reservation.getSeat();
+        var train = reservation.getTrain();
 
         if (!seat.isReserved()) {
             throw new ApiException("이미 취소된 좌석입니다.");
         }
 
         seat.cancel();
+
+        train.updateAvailableSeats(train.getAvailableSeats() + 1);
 
         reservationRepository.delete(reservation);
     }

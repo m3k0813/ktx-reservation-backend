@@ -1,7 +1,6 @@
 package com.ktcloudinfra.ktx_reservation.domain.revervation.dto.response;
 
 import com.ktcloudinfra.ktx_reservation.domain.revervation.entity.Reservation;
-import com.ktcloudinfra.ktx_reservation.domain.train.entity.Train;
 import lombok.Builder;
 import lombok.Getter;
 

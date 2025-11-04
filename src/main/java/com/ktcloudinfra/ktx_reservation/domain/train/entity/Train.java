@@ -49,4 +49,8 @@ public class Train {
         this.arrivalTime = arrivalTime;
         this.availableSeats = availableSeats;
     }
+
+    public void updateAvailableSeats(int availableSeats) {
+        this.availableSeats = availableSeats;
+    }
 }

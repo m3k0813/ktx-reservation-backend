@@ -2,14 +2,12 @@ package com.ktcloudinfra.ktx_reservation.domain.user.controller;
 
 import com.ktcloudinfra.ktx_reservation.domain.user.dto.request.CreateUserRequestDTO;
 import com.ktcloudinfra.ktx_reservation.domain.user.dto.request.LoginRequestDTO;
+import com.ktcloudinfra.ktx_reservation.domain.user.entity.User;
 import com.ktcloudinfra.ktx_reservation.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -30,5 +28,10 @@ public class UserController {
     public ResponseEntity<Long> login(@RequestBody LoginRequestDTO request) {
         Long userId = userService.login(request);
         return ResponseEntity.ok(userId);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<User> getUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getUser(userId));
     }
 }
