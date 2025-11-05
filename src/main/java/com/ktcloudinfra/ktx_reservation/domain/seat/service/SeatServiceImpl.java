@@ -26,6 +26,7 @@ public class SeatServiceImpl implements SeatService {
         return seats.stream()
                 .map(seat -> SeatResponseDTO.builder()
                         .id(seat.getId())
+                        .name(seat.getTrain().getName())
                         .seatNumber(seat.getSeatNumber())
                         .reserved(seat.isReserved())
                         .build())

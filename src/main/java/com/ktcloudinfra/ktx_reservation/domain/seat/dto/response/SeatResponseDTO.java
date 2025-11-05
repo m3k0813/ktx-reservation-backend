@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 public class SeatResponseDTO {
     private Long id;
+    private String name;
     private String seatNumber;
     private boolean reserved;
 }
