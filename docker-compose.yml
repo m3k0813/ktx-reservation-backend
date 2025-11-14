@@ -1,0 +1,234 @@
+version: '3.8'
+
+services:
+  # MySQL Database for User Service
+  mysql-user:
+    image: mysql:8.0
+    container_name: mysql-user
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ktx_user
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-user-data:/var/lib/mysql
+    networks:
+      - ktx-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for Train Service
+  mysql-train:
+    image: mysql:8.0
+    container_name: mysql-train
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ktx_train
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-train-data:/var/lib/mysql
+    networks:
+      - ktx-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for Seat Service
+  mysql-seat:
+    image: mysql:8.0
+    container_name: mysql-seat
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ktx_seat
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql-seat-data:/var/lib/mysql
+    networks:
+      - ktx-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Database for Reservation Service
+  mysql-reservation:
+    image: mysql:8.0
+    container_name: mysql-reservation
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ktx_reservation
+    ports:
+      - "3310:3306"
+    volumes:
+      - mysql-reservation-data:/var/lib/mysql
+    networks:
+      - ktx-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    networks:
+      - ktx-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # User Service
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    environment:
+      DB_HOST: mysql-user
+      DB_USER: root
+      DB_PASSWORD: root
+    ports:
+      - "8081:8081"
+    depends_on:
+      mysql-user:
+        condition: service_healthy
+    networks:
+      - ktx-network
+    restart: on-failure
+
+  # Train Service
+  train-service:
+    build:
+      context: ./services/train-service
+      dockerfile: Dockerfile
+    container_name: train-service
+    environment:
+      DB_HOST: mysql-train
+      DB_USER: root
+      DB_PASSWORD: root
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: admin
+      RABBITMQ_PASSWORD: admin
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql-train:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ktx-network
+    restart: on-failure
+
+  # Seat Service
+  seat-service:
+    build:
+      context: ./services/seat-service
+      dockerfile: Dockerfile
+    container_name: seat-service
+    environment:
+      DB_HOST: mysql-seat
+      DB_USER: root
+      DB_PASSWORD: root
+      TRAIN_SERVICE_URL: http://train-service:8082
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: admin
+      RABBITMQ_PASSWORD: admin
+    ports:
+      - "8083:8083"
+    depends_on:
+      mysql-seat:
+        condition: service_healthy
+      train-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ktx-network
+    restart: on-failure
+
+  # Reservation Service
+  reservation-service:
+    build:
+      context: ./services/reservation-service
+      dockerfile: Dockerfile
+    container_name: reservation-service
+    environment:
+      DB_HOST: mysql-reservation
+      DB_USER: root
+      DB_PASSWORD: root
+      USER_SERVICE_URL: http://user-service:8081
+      TRAIN_SERVICE_URL: http://train-service:8082
+      SEAT_SERVICE_URL: http://seat-service:8083
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: admin
+      RABBITMQ_PASSWORD: admin
+    ports:
+      - "8084:8084"
+    depends_on:
+      mysql-reservation:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      train-service:
+        condition: service_started
+      seat-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ktx-network
+    restart: on-failure
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      USER_SERVICE_URL: http://user-service:8081
+      TRAIN_SERVICE_URL: http://train-service:8082
+      SEAT_SERVICE_URL: http://seat-service:8083
+      RESERVATION_SERVICE_URL: http://reservation-service:8084
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-service
+      - train-service
+      - seat-service
+      - reservation-service
+    networks:
+      - ktx-network
+    restart: on-failure
+
+networks:
+  ktx-network:
+    driver: bridge
+
+volumes:
+  mysql-user-data:
+  mysql-train-data:
+  mysql-seat-data:
+  mysql-reservation-data:

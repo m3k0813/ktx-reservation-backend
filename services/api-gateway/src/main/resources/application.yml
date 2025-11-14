@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - RewritePath=/api/v1/users/(?<segment>.*), /api/v1/users/$\{segment}
+
+        - id: train-service
+          uri: ${TRAIN_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/trains/**
+          filters:
+            - RewritePath=/api/v1/trains/(?<segment>.*), /api/v1/trains/$\{segment}
+
+        - id: seat-service
+          uri: ${SEAT_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/seats/**
+          filters:
+            - RewritePath=/api/v1/seats/(?<segment>.*), /api/v1/seats/$\{segment}
+
+        - id: reservation-service
+          uri: ${RESERVATION_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/reservations/**
+          filters:
+            - RewritePath=/api/v1/reservations/(?<segment>.*), /api/v1/reservations/$\{segment}
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

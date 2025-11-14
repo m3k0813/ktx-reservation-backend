@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: reservation-service
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:3306/ktx_reservation?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 5000
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:admin}
+    password: ${RABBITMQ_PASSWORD:admin}
+
+server:
+  port: 8084
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+user-service:
+  url: ${USER_SERVICE_URL:http://localhost:8081}
+
+train-service:
+  url: ${TRAIN_SERVICE_URL:http://localhost:8082}
+
+seat-service:
+  url: ${SEAT_SERVICE_URL:http://localhost:8083}
